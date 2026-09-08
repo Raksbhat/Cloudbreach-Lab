@@ -1,0 +1,66 @@
+# Vulnerability #1 — SSH Exposed to Internet
+
+## Description
+
+The EC2 instance allows inbound SSH traffic (TCP/22) from any IPv4 address.
+
+```text
+Protocol: TCP
+Port: 22
+Source: 0.0.0.0/0
+```
+
+## Why This Is Vulnerable
+
+`0.0.0.0/0` represents every IPv4 address on the internet.
+
+Because the EC2 instance has a public IPv4 address, the SSH service is directly reachable from the internet.
+
+## Evidence
+
+EC2 public IP:
+
+```text
+16.16.202.220
+```
+
+SSH connection was successfully established from CloudShell:
+
+```bash
+ssh -i ~/.ssh/cloudbreach-lab ec2-user@16.16.202.220
+```
+
+Successful login:
+
+```text
+ec2-user@ip-10-0-1-241.eu-north-1.compute.internal
+```
+
+## Security Impact
+
+An internet-exposed SSH service increases the attack surface and can be targeted by:
+
+* Automated SSH scanning
+* Brute-force/password attacks
+* Credential attacks
+* Exploitation of SSH-related vulnerabilities
+
+## Root Cause
+
+The Security Group intentionally allows:
+
+```text
+TCP/22 → 0.0.0.0/0
+```
+
+## Intended Lab Vulnerability
+
+This configuration is deliberately insecure for the CloudBreach Lab and will be hardened later.
+
+## Status
+
+* [x] Vulnerability created
+* [x] SSH connectivity verified
+* [ ] Detection
+* [ ] Hardening
+

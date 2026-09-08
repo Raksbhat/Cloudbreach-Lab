@@ -57,3 +57,45 @@ resource "aws_route_table_association" "public" {
   subnet_id      = aws_subnet.public.id
   route_table_id = aws_route_table.public.id
 }
+
+resource "aws_security_group" "open_ssh" {
+  name        = "cloudbreach-lab-open-ssh"
+  description = "Intentionally vulnerable SSH access"
+  vpc_id      = aws_vpc.lab.id
+
+  ingress {
+    description = "SSH from anywhere"
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "cloudbreach-lab-open-ssh"
+  }
+}
+
+resource "aws_instance" "lab" {
+  ami           = "ami-01d5faff4584de9de"
+  instance_type = "t3.micro"
+  key_name      = "cloudbreach-lab-key"
+  subnet_id     = aws_subnet.public.id
+
+  vpc_security_group_ids = [
+    aws_security_group.open_ssh.id
+  ]
+
+  associate_public_ip_address = true
+
+  tags = {
+    Name = "cloudbreach-lab-ec2"
+  }
+}
