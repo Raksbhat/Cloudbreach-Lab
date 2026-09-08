@@ -57,10 +57,43 @@ TCP/22 → 0.0.0.0/0
 
 This configuration is deliberately insecure for the CloudBreach Lab and will be hardened later.
 
+## Detection — VPC Flow Logs
+
+VPC Flow Logs were enabled for the lab VPC and configured to send traffic records to CloudWatch Logs.
+
+The SSH connection generated an accepted TCP/22 flow:
+
+```text
+Source:      13.48.85.149
+Destination: 10.0.1.241
+Source Port: 39530
+Destination Port: 22
+Protocol:    TCP (6)
+Action:      ACCEPT
+```
+
+A reverse flow was also observed:
+
+```text
+Source:      10.0.1.241
+Destination: 13.48.85.149
+Source Port: 22
+Destination Port: 39530
+Protocol:    TCP (6)
+Action:      ACCEPT
+```
+
+Additional rejected connection attempts from unrelated internet addresses were also observed, demonstrating that the publicly reachable EC2 instance is receiving unsolicited internet traffic.
+
+### Detection Conclusion
+
+VPC Flow Logs successfully captured the network-level evidence of the exposed SSH service and confirmed that TCP/22 traffic was being accepted by the EC2 instance.
+
+
 ## Status
 
 * [x] Vulnerability created
 * [x] SSH connectivity verified
-* [ ] Detection
+* [x] Detection
 * [ ] Hardening
 

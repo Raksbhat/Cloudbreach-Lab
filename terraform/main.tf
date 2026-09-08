@@ -49,7 +49,7 @@ resource "aws_route_table" "public" {
 
 resource "aws_route" "internet" {
   route_table_id         = aws_route_table.public.id
-  destination_cidr_block = "0.0.0.0/0"
+  destination_cidr_block = "13.48.85.149/32"
   gateway_id             = aws_internet_gateway.lab.id
 }
 
@@ -68,14 +68,14 @@ resource "aws_security_group" "open_ssh" {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = ["13.48.85.149/32"]
   }
 
   egress {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = ["13.48.85.149/32"]
   }
 
   tags = {
@@ -97,5 +97,55 @@ resource "aws_instance" "lab" {
 
   tags = {
     Name = "cloudbreach-lab-ec2"
+  }
+}
+
+resource "aws_cloudwatch_log_group" "vpc_flow_logs" {
+  name              = "/cloudbreach-lab/vpc-flow-logs"
+  retention_in_days = 7
+}
+
+resource "aws_iam_role" "vpc_flow_logs" {
+  name = "cloudbreach-lab-vpc-flow-logs"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect = "Allow"
+      Principal = {
+        Service = "vpc-flow-logs.amazonaws.com"
+      }
+      Action = "sts:AssumeRole"
+    }]
+  })
+}
+
+resource "aws_iam_role_policy" "vpc_flow_logs" {
+  role = aws_iam_role.vpc_flow_logs.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect = "Allow"
+      Action = [
+        "logs:CreateLogGroup",
+        "logs:CreateLogStream",
+        "logs:PutLogEvents",
+        "logs:DescribeLogGroups",
+        "logs:DescribeLogStreams"
+      ]
+      Resource = "*"
+    }]
+  })
+}
+
+resource "aws_flow_log" "lab" {
+  vpc_id          = aws_vpc.lab.id
+  traffic_type    = "ALL"
+  iam_role_arn    = aws_iam_role.vpc_flow_logs.arn
+  log_destination = aws_cloudwatch_log_group.vpc_flow_logs.arn
+
+  tags = {
+    Name = "cloudbreach-lab-vpc-flow-logs"
   }
 }
