@@ -100,11 +100,13 @@ VPC Flow Logs successfully captured the network-level evidence of the exposed SS
 ## Vulnerability #2 — Over-Privileged IAM User
 
 ### Vulnerability
+
 The IAM user `cloudbreach-attacker` was initially granted the AWS managed policy `AdministratorAccess`.
 
 This violated the principle of least privilege and gave the attacker broad access to AWS resources.
 
 ### Attack
+
 Using the attacker's access keys:
 
 ```bash
@@ -112,4 +114,71 @@ aws sts get-caller-identity --profile cloudbreach-attacker
 aws s3 ls --profile cloudbreach-attacker
 aws s3 ls s3://<bucket-name> --profile cloudbreach-attacker
 aws s3 cp s3://<bucket-name>/customer-data.txt ./customer-data.txt --profile cloudbreach-attacker
+```
+
+The attacker successfully enumerated S3 resources and downloaded the fake sensitive data.
+
+### Detection
+
+CloudTrail Event History recorded the S3 API activity performed by `cloudbreach-attacker`.
+
+Relevant activity included:
+
+* S3 bucket enumeration
+* S3 object listing
+* `GetObject`
+
+### Security Impact
+
+An attacker who obtains the IAM user's credentials could access AWS resources beyond what is required for the user's intended purpose.
+
+Potential impact includes:
+
+* Unauthorized data access
+* Data exfiltration
+* Resource modification
+* Further AWS account compromise
+
+### Root Cause
+
+The IAM user was granted:
+
+```text
+AdministratorAccess
+```
+
+instead of only the permissions required for its intended task.
+
+### Remediation
+
+Removed `AdministratorAccess` from `cloudbreach-attacker`.
+
+The attacker was left without S3 permissions.
+
+### Validation
+
+The same S3 commands were executed again after removing the excessive permissions.
+
+The requests failed with:
+
+```text
+AccessDenied
+```
+
+This confirmed that the excessive IAM privileges were successfully removed.
+
+### Security Principle
+
+**Principle of Least Privilege**
+
+IAM identities should receive only the permissions required to perform their intended tasks.
+
+## Status
+
+* [x] Vulnerability created
+* [x] Excessive permissions assigned
+* [x] S3 access verified
+* [x] CloudTrail detection
+* [x] Permissions hardened
+* [x] Attack re-tested and blocked
 
