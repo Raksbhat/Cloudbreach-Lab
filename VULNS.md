@@ -182,3 +182,135 @@ IAM identities should receive only the permissions required to perform their int
 * [x] Permissions hardened
 * [x] Attack re-tested and blocked
 
+## Vulnerability #3 — CloudTrail-Detected Credential Abuse and IAM Persistence
+
+### Vulnerability
+
+The IAM user `cloudbreach-attacker` was intentionally granted the AWS managed policy `AdministratorAccess`.
+
+This allowed the compromised identity to perform privileged AWS API operations, including resource discovery, S3 access, and EC2 control.
+
+### Attack
+
+Using the attacker's credentials, AWS resources were enumerated:
+
+```bash
+aws sts get-caller-identity --profile cloudbreach-attacker
+aws s3 ls --profile cloudbreach-attacker
+aws iam list-users --profile cloudbreach-attacker
+aws ec2 describe-instances --profile cloudbreach-attacker --region eu-north-1
+```
+
+The attacker also accessed the CloudTrail S3 bucket:
+
+```bash
+aws s3 ls s3://cloudbreach-lab-cloudtrail-972050064174 \
+  --profile cloudbreach-attacker
+```
+
+A privileged EC2 action was also attempted:
+
+```bash
+aws ec2 stop-instances \
+  --instance-ids i-04fa3fc37868dabed \
+  --profile cloudbreach-attacker \
+  --region eu-north-1
+```
+
+The stop request did not successfully affect the instance, but the API request itself was recorded by CloudTrail.
+
+### Detection
+
+AWS CloudTrail was configured to record management activity and deliver logs to the lab S3 bucket.
+
+CloudTrail Event History captured activity associated with `cloudbreach-attacker`, including:
+
+* `GetCallerIdentity`
+* `ListBuckets`
+* `ListUsers`
+* `DescribeInstances`
+* `GetBucketLocation`
+* `StopInstances`
+
+The events provided evidence of the attacker's identity, access key, source IP address, AWS service accessed, API operation, and request outcome.
+
+### Attack Timeline
+
+```text
+Identity discovery
+        ↓
+AWS resource reconnaissance
+        ↓
+S3 enumeration
+        ↓
+CloudTrail bucket access
+        ↓
+Privileged EC2 API request
+```
+
+### Security Impact
+
+An attacker possessing credentials for an over-privileged IAM identity could:
+
+* Enumerate AWS resources
+* Access sensitive S3 data
+* Modify AWS resources
+* Stop or terminate EC2 instances
+* Establish additional persistence mechanisms
+* Potentially compromise other resources within the AWS account
+
+### Root Cause
+
+The IAM user was granted:
+
+```text
+AdministratorAccess
+```
+
+This provided significantly more permissions than required and allowed the identity to perform actions across multiple AWS services.
+
+### Detection and Response
+
+CloudTrail provided the audit trail required to reconstruct the attack activity.
+
+The attacker identity and associated API activity were identified through CloudTrail Event History.
+
+The excessive `AdministratorAccess` policy was then removed from `cloudbreach-attacker`.
+
+### Remediation
+
+Removed:
+
+```text
+AdministratorAccess
+```
+
+from `cloudbreach-attacker`.
+
+The attacker identity was subsequently contained as part of the lab cleanup.
+
+### Validation
+
+After removing the excessive policy, the attacker no longer had the same administrative privileges.
+
+The IAM configuration was reviewed to confirm that `AdministratorAccess` was no longer attached to the attacker identity.
+
+### Security Principle
+
+**Principle of Least Privilege**
+
+IAM identities should receive only the permissions required for their intended tasks.
+
+CloudTrail should be enabled and monitored to provide visibility into AWS API activity and support detection and incident response.
+
+## Status
+
+* [x] Vulnerable IAM identity created
+* [x] AdministratorAccess assigned
+* [x] AWS reconnaissance performed
+* [x] S3 access verified
+* [x] CloudTrail logging configured
+* [x] Attacker activity detected
+* [x] Attack activity investigated
+* [x] Excessive permissions removed
+* [x] Lab resources cleaned up
