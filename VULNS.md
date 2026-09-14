@@ -314,3 +314,13 @@ CloudTrail should be enabled and monitored to provide visibility into AWS API ac
 * [x] Attack activity investigated
 * [x] Excessive permissions removed
 * [x] Lab resources cleaned up
+
+## Vulnerability #4 — Potentially Unintended S3 External Access
+
+### Vulnerability
+
+An S3 bucket was created to test AWS IAM Access Analyzer:
+
+```text
+cloudbreach-access-analyzer-972050064174
+
