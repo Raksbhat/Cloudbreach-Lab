@@ -1,14 +1,20 @@
 terraform {
   required_providers {
     aws = {
-      source = "hashicorp/aws"
+      source  = "hashicorp/aws"
+      version = "~> 6.0"
     }
+  }
+
+  backend "s3" {
+    bucket       = "cloudbreach-lab-tfstate-972050064174"
+    key          = "cloudbreach-lab/terraform.tfstate"
+    region       = "eu-north-1"
+    encrypt      = true
+    use_lockfile = true
   }
 }
 
-provider "aws" {
-  region = "eu-north-1"
-}
 
 resource "aws_vpc" "lab" {
   cidr_block           = "10.0.0.0/16"
