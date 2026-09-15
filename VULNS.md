@@ -324,3 +324,51 @@ An S3 bucket was created to test AWS IAM Access Analyzer:
 ```text
 cloudbreach-access-analyzer-972050064174
 
+## Day 8 — AWS Logging and Monitoring
+
+### Logging and Monitoring Overview
+
+Logging and monitoring are essential for detecting, investigating, and responding to security incidents.
+
+- **Logging** records activity and events for investigation.
+- **Monitoring** observes system behavior and identifies abnormal conditions.
+- Logs provide historical evidence.
+- Metrics provide numerical measurements of system performance and health.
+- Alerts can be created when metrics or log patterns cross defined thresholds.
+
+---
+
+### CloudTrail
+
+**AWS CloudTrail** records AWS API activity and account actions.
+
+It helps answer:
+
+- Who performed an action?
+- What action was performed?
+- Which AWS resource was affected?
+- When did the action occur?
+- From which IP address or service did the request originate?
+
+CloudTrail was configured with:
+
+- Trail name: `billeshbhai`
+- Region: `eu-north-1`
+- S3 log destination: `cloudbreach-trail-972050064174-1789476047`
+
+CloudTrail log delivery to S3 was verified successfully.
+
+Example event investigated:
+
+```json
+{
+  "eventSource": "s3.amazonaws.com",
+  "eventName": "GetBucketAcl",
+  "sourceIPAddress": "cloudtrail.amazonaws.com",
+  "userIdentity": {
+    "type": "AWSService",
+    "invokedBy": "cloudtrail.amazonaws.com"
+  },
+  "managementEvent": true,
+  "eventCategory": "Management"
+}
