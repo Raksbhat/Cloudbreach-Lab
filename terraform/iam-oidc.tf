@@ -36,7 +36,10 @@ resource "aws_iam_role" "github_actions_terraform" {
           }
 
           StringLike = {
-            "token.actions.githubusercontent.com:sub" = "repo:Raksbhat/Cloudbreach-Lab:*"
+            "token.actions.githubusercontent.com:sub" = [
+              "repo:Raksbhat/Cloudbreach-Lab:*",
+              "repo:Raksbhat@*/Cloudbreach-Lab@*:ref:refs/heads/main"
+            ]
           }
         }
       }
