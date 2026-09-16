@@ -71,13 +71,17 @@ resource "aws_iam_role_policy" "github_actions_terraform" {
       {
         Sid    = "TerraformIAMOIDCManagement"
         Effect = "Allow"
+
         Action = [
           "iam:GetOpenIDConnectProvider",
           "iam:TagOpenIDConnectProvider",
           "iam:UntagOpenIDConnectProvider",
+
           "iam:GetRole",
+          "iam:ListAttachedRolePolicies",
           "iam:TagRole",
           "iam:UntagRole",
+
           "iam:UpdateAssumeRolePolicy",
           "iam:PutRolePolicy",
           "iam:GetRolePolicy",
